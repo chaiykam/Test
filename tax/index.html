@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>บันไดภาษี</title>
+<meta name="description" content="คำนวณภาษีเงินได้บุคคลธรรมดาแบบขั้นบันได พร้อมดูว่าภาษีแต่ละบาทมาจากขั้นไหน">
+<style>
+  :root{
+    --bg:#ECEEF3;
+    --surface:#FFFFFF;
+    --surface-2:#F4F6FA;
+    --ink:#171A2B;
+    --muted:#646A82;
+    --line:#DDE1EA;
+    --line-strong:#C3C9D8;
+    --accent:#25356B;
+    --accent-soft:#E3E7F3;
+    --good:#1B6B4E;
+    --good-soft:#DFEDE7;
+    --on-accent:#FFFFFF;
+    --shadow:0 1px 2px rgba(23,26,43,.06), 0 10px 26px -18px rgba(23,26,43,.4);
+    --r:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0D0F17;
+      --surface:#151824;
+      --surface-2:#1C2030;
+      --ink:#E7E9F2;
+      --muted:#8F96AE;
+      --line:#262B3B;
+      --line-strong:#363C50;
+      --accent:#93A6E2;
+      --accent-soft:#1B2138;
+      --good:#46C08C;
+      --good-soft:#122C22;
+      --on-accent:#0D0F17;
+      --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 26px -18px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0D0F17;
+    --surface:#151824;
+    --surface-2:#1C2030;
+    --ink:#E7E9F2;
+    --muted:#8F96AE;
+    --line:#262B3B;
+    --line-strong:#363C50;
+    --accent:#93A6E2;
+    --accent-soft:#1B2138;
+    --good:#46C08C;
+    --good-soft:#122C22;
+    --on-accent:#0D0F17;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 26px -18px rgba(0,0,0,.9);
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Noto Sans Thai", "Sarabun", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-text-size-adjust:100%;
+  }
+
+  .num{
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+  }
+
+  .wrap{
+    max-width:560px;
+    margin:0 auto;
+    padding:16px 16px calc(112px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  /* ---------- masthead ---------- */
+  header{padding-top:calc(10px + env(safe-area-inset-top))}
+  header h1{
+    margin:0;
+    font-size:1.3rem;
+    font-weight:680;
+    letter-spacing:-.02em;
+  }
+  header .year{
+    display:inline-block;
+    margin-top:7px;
+    padding:3px 10px;
+    border-radius:99px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-size:.74rem;
+    font-weight:650;
+  }
+  header p{
+    margin:9px 0 0;
+    font-size:.85rem;
+    color:var(--muted);
+    line-height:1.6;
+  }
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .card > h2{
+    margin:0;
+    padding:15px 16px;
+    font-size:.74rem;
+    font-weight:680;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+    border-bottom:1px solid var(--line);
+    background:var(--surface-2);
+  }
+  .card .inner{padding:16px;display:flex;flex-direction:column;gap:15px}
+
+  /* ---------- fields ---------- */
+  .f label{
+    display:block;
+    font-size:.86rem;
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .f .hint{
+    display:block;
+    font-size:.73rem;
+    font-weight:400;
+    color:var(--muted);
+    margin-top:2px;
+    line-height:1.5;
+  }
+  .box{
+    display:flex;
+    align-items:center;
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .box:focus-within{border-color:var(--accent)}
+  .box input{
+    flex:1;
+    min-width:0;
+    border:none;
+    background:none;
+    color:var(--ink);
+    padding:11px 12px;
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:1rem;
+    font-weight:600;
+    text-align:right;
+  }
+  .box input:focus{outline:none}
+  .box input::placeholder{color:var(--line-strong);font-weight:400}
+  .box .unit{
+    padding:0 12px;
+    font-size:.78rem;
+    color:var(--muted);
+    border-left:1px solid var(--line);
+    align-self:stretch;
+    display:flex;
+    align-items:center;
+  }
+
+
+  /* stepper for counts */
+  .step{
+    display:flex;
+    align-items:center;
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .step button{
+    width:42px;
+    align-self:stretch;
+    border:none;
+    background:none;
+    color:var(--muted);
+    font-size:1.25rem;
+    font-family:inherit;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .step button:hover{background:var(--accent-soft);color:var(--accent)}
+  .step b{
+    flex:1;
+    text-align:center;
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:1rem;
+    font-weight:650;
+    padding:10px 0;
+  }
+
+  .check{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    cursor:pointer;
+  }
+  .check input{
+    width:20px;height:20px;
+    margin:1px 0 0;
+    accent-color:var(--accent);
+    flex:0 0 auto;
+  }
+  .check span{font-size:.9rem}
+  .check .hint{margin-top:1px}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+  /* ---------- breakdown ---------- */
+  .bk{display:flex;flex-direction:column}
+  .bk .line{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    padding:9px 16px;
+    font-size:.88rem;
+    border-bottom:1px solid var(--line);
+  }
+  .bk .line:last-child{border-bottom:none}
+  .bk .line span:first-child{color:var(--muted)}
+  .bk .line.sum{
+    background:var(--surface-2);
+    font-weight:650;
+  }
+  .bk .line.sum span:first-child{color:var(--ink)}
+  .bk .line.minus span:last-child{color:var(--good)}
+  .bk .line small{display:block;font-size:.72rem;color:var(--muted);font-weight:400}
+
+  /* ---------- ladder ---------- */
+  .ladder{display:flex;flex-direction:column}
+  .rung{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:11px;
+    padding:10px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .rung:last-child{border-bottom:none}
+  .rung.off{opacity:.42}
+  .rung.here{background:var(--accent-soft)}
+  .rung .rate{
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:.8rem;
+    font-weight:680;
+    width:34px;
+    text-align:right;
+    color:var(--accent);
+  }
+  .rung .band{min-width:0;display:block}
+  .rung .band .rng{
+    display:block;
+    font-size:.73rem;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .rung .track{
+    display:block;
+    height:6px;
+    margin-top:4px;
+    border-radius:99px;
+    background:var(--line);
+    overflow:hidden;
+  }
+  .rung .track i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .rung .amt{
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:.84rem;
+    font-weight:620;
+    white-space:nowrap;
+  }
+  .rung.off .amt{color:var(--muted);font-weight:400}
+  .here-tag{
+    display:inline-block;
+    margin-left:6px;
+    padding:1px 6px;
+    border-radius:99px;
+    background:var(--accent);
+    color:var(--on-accent);
+    font-size:.62rem;
+    font-weight:700;
+    vertical-align:middle;
+  }
+
+  /* ---------- tip ---------- */
+  .tip{
+    display:flex;
+    gap:11px;
+    padding:14px 16px;
+    background:var(--good-soft);
+    border:1px solid var(--good);
+    border-radius:var(--r);
+    font-size:.85rem;
+    line-height:1.6;
+  }
+  .tip b{color:var(--good)}
+  .tip .ic{font-size:1.1rem;line-height:1.3}
+
+  /* ---------- sticky result ---------- */
+  .bar{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    background:var(--surface);
+    border-top:1px solid var(--line-strong);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow:0 -6px 24px -14px rgba(0,0,0,.5);
+    z-index:10;
+  }
+  .bar .in{
+    max-width:560px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .bar .lbl{font-size:.73rem;color:var(--muted);display:block}
+  .bar .big{
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:1.6rem;
+    font-weight:680;
+    line-height:1.15;
+    letter-spacing:-.03em;
+  }
+  .bar .big.zero{color:var(--good)}
+  .bar .side{text-align:right;font-size:.73rem;color:var(--muted);line-height:1.5}
+  .bar .side b{
+    display:block;
+    font-size:.95rem;
+    color:var(--ink);
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-weight:650;
+  }
+
+  /* ---------- notes ---------- */
+  .note{
+    font-size:.76rem;
+    color:var(--muted);
+    line-height:1.7;
+    padding:0 2px;
+  }
+  .note h3{
+    font-size:.8rem;
+    color:var(--ink);
+    margin:0 0 6px;
+    font-weight:650;
+  }
+  .note ul{margin:0;padding-left:1.1em}
+  .note li{margin-bottom:3px}
+  .note a{color:var(--accent)}
+
+  .warnbox{
+    padding:12px 14px;
+    border-radius:10px;
+    background:var(--accent-soft);
+    color:var(--ink);
+    font-size:.8rem;
+    line-height:1.6;
+    border:1px solid var(--line-strong);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <h1>บันไดภาษี</h1>
+    <span class="year">ปีภาษี 2569</span>
+    <p>คำนวณภาษีเงินได้บุคคลธรรมดาแบบขั้นบันได แล้วดูว่าภาษีแต่ละบาทมาจากขั้นไหน คิดในเครื่องคุณล้วนๆ ไม่มีการส่งข้อมูลออกไปไหน</p>
+  </header>
+
+  <section class="card">
+    <h2>รายได้ทั้งปี</h2>
+    <div class="inner">
+      <div class="f">
+        <label for="salary">เงินเดือน + โบนัส + ค่าจ้าง
+          <span class="hint">เงินได้ประเภทที่ 1 รวมทั้งปีก่อนหักอะไร</span>
+        </label>
+        <div class="box"><input id="salary" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="freelance">รายได้รับจ้างทั่วไป / ฟรีแลนซ์
+          <span class="hint">เงินได้ประเภทที่ 2 เช่น ค่านายหน้า ค่าจ้างทำของที่ไม่ใช่ลูกจ้างประจำ</span>
+        </label>
+        <div class="box"><input id="freelance" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>ครอบครัว</h2>
+    <div class="inner">
+      <label class="check">
+        <input id="spouse" type="checkbox">
+        <span>คู่สมรสไม่มีเงินได้
+          <span class="hint">ลดหย่อนได้ 60,000 บาท</span>
+        </span>
+      </label>
+
+      <div class="f">
+        <label>บุตร คนละ 30,000 บาท
+          <span class="hint">บุตรคนแรก และบุตรที่เกิดก่อนปี 2561</span>
+        </label>
+        <div class="step">
+          <button type="button" data-step="child1" data-d="-1" aria-label="ลด">−</button>
+          <b id="child1v">0</b>
+          <button type="button" data-step="child1" data-d="1" aria-label="เพิ่ม">+</button>
+        </div>
+      </div>
+
+      <div class="f">
+        <label>บุตรคนที่ 2 ขึ้นไป คนละ 60,000 บาท
+          <span class="hint">เฉพาะบุตรที่เกิดตั้งแต่ปี 2561 เป็นต้นไป</span>
+        </label>
+        <div class="step">
+          <button type="button" data-step="child2" data-d="-1" aria-label="ลด">−</button>
+          <b id="child2v">0</b>
+          <button type="button" data-step="child2" data-d="1" aria-label="เพิ่ม">+</button>
+        </div>
+      </div>
+
+      <div class="f">
+        <label>บิดามารดาที่อุปการะ คนละ 30,000 บาท
+          <span class="hint">นับรวมบิดามารดาของคู่สมรสได้ สูงสุด 4 คน ต้องอายุ 60 ปีขึ้นไปและมีเงินได้ไม่เกิน 30,000 บาท/ปี</span>
+        </label>
+        <div class="step">
+          <button type="button" data-step="parent" data-d="-1" aria-label="ลด">−</button>
+          <b id="parentv">0</b>
+          <button type="button" data-step="parent" data-d="1" aria-label="เพิ่ม">+</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>ประกันและการลงทุน</h2>
+    <div class="inner">
+      <div class="f">
+        <label for="sso">ประกันสังคม<span class="hint">สูงสุด 9,000 บาท</span></label>
+        <div class="box"><input id="sso" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="life">เบี้ยประกันชีวิต<span class="hint">รวมกับประกันสุขภาพตนเองแล้วไม่เกิน 100,000 บาท</span></label>
+        <div class="box"><input id="life" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="health">เบี้ยประกันสุขภาพตนเอง<span class="hint">สูงสุด 25,000 บาท และเมื่อรวมประกันชีวิตต้องไม่เกิน 100,000 บาท</span></label>
+        <div class="box"><input id="health" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="phealth">เบี้ยประกันสุขภาพบิดามารดา<span class="hint">สูงสุด 15,000 บาท</span></label>
+        <div class="box"><input id="phealth" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="retire">กองทุนเพื่อการเกษียณ
+          <span class="hint">กองทุนสำรองเลี้ยงชีพ กบข. RMF ประกันบำนาญ กอช. รวมกันไม่เกิน 500,000 บาท และแต่ละกองมีเพดานเป็นสัดส่วนของเงินได้ของตัวเอง กรอกยอดที่อยู่ในเกณฑ์แล้ว</span>
+        </label>
+        <div class="box"><input id="retire" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>บ้านและเงินบริจาค</h2>
+    <div class="inner">
+      <div class="f">
+        <label for="mortgage">ดอกเบี้ยเงินกู้ซื้อที่อยู่อาศัย<span class="hint">สูงสุด 100,000 บาท เฉพาะส่วนดอกเบี้ย ไม่รวมเงินต้น</span></label>
+        <div class="box"><input id="mortgage" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="edu">บริจาคเพื่อการศึกษา กีฬา และสาธารณประโยชน์<span class="hint">หักได้ 2 เท่าของที่จ่ายจริง</span></label>
+        <div class="box"><input id="edu" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+      <div class="f">
+        <label for="donate">บริจาคทั่วไป<span class="hint">รวมกับบริจาค 2 เท่าแล้วต้องไม่เกิน 10% ของเงินได้หลังหักค่าใช้จ่ายและค่าลดหย่อน</span></label>
+        <div class="box"><input id="donate" type="text" inputmode="numeric" placeholder="0"><span class="unit">บาท</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="minTaxNote" class="warnbox" hidden></div>
+
+  <section class="card">
+    <h2>คิดมายังไง</h2>
+    <div class="bk" id="breakdown"></div>
+  </section>
+
+  <section class="card">
+    <h2>ภาษีมาจากขั้นไหนบ้าง</h2>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <div class="tip" id="tip" hidden>
+    <span class="ic">💡</span>
+    <span id="tipText"></span>
+  </div>
+
+  <div class="note">
+    <h3>เครื่องมือนี้ยังไม่ครอบคลุมอะไรบ้าง</h3>
+    <ul>
+      <li>เงินได้ประเภทที่ 3–8 เช่น ค่าเช่า ค่าลิขสิทธิ์ เงินปันผล กำไรจากธุรกิจ ซึ่งหักค่าใช้จ่ายคนละแบบ</li>
+      <li>ค่าลดหย่อนกระตุ้นเศรษฐกิจที่เปลี่ยนทุกปี เช่น Easy E-Receipt และกองทุน Thai ESG โปรดตรวจสอบเงื่อนไขปีล่าสุดเอง</li>
+      <li>การแยกยื่นของคู่สมรส และการเลือกยื่นรวม/แยกที่ให้ผลต่างกัน</li>
+      <li>ภาษีหัก ณ ที่จ่ายที่ถูกหักไประหว่างปี ตัวเลขที่ได้คือภาษีทั้งปี ไม่ใช่ยอดที่ต้องจ่ายเพิ่มตอนยื่น</li>
+    </ul>
+    <p>ผลลัพธ์เป็นการประมาณการเพื่อวางแผนเท่านั้น ไม่ใช่คำแนะนำทางภาษี ก่อนยื่นจริงโปรดตรวจสอบกับ <a href="https://www.rd.go.th" target="_blank" rel="noopener">กรมสรรพากร</a> หรือผู้ทำบัญชี</p>
+  </div>
+
+</div>
+
+<div class="bar">
+  <div class="in">
+    <div>
+      <span class="lbl">ภาษีที่ต้องจ่ายทั้งปี</span>
+      <span class="big num" id="taxOut">0</span>
+    </div>
+    <div class="side">
+      อัตราภาษีที่จ่ายจริง
+      <b id="effOut">0%</b>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function $(id){ return document.getElementById(id); }
+
+  // ขั้นบันไดอัตราภาษีเงินได้บุคคลธรรมดา — แก้ที่เดียวเมื่อกฎหมายเปลี่ยน
+  var BRACKETS = [
+    { upto: 150000,   rate: 0    },
+    { upto: 300000,   rate: 0.05 },
+    { upto: 500000,   rate: 0.10 },
+    { upto: 750000,   rate: 0.15 },
+    { upto: 1000000,  rate: 0.20 },
+    { upto: 2000000,  rate: 0.25 },
+    { upto: 5000000,  rate: 0.30 },
+    { upto: Infinity, rate: 0.35 }
+  ];
+
+  var LIMITS = {
+    expenseRate: 0.5,
+    expenseCap: 100000,
+    personal: 60000,
+    spouse: 60000,
+    child1: 30000,
+    child2: 60000,
+    parent: 30000,
+    parentMax: 4,
+    sso: 9000,
+    lifeHealthCombined: 100000,
+    health: 25000,
+    parentHealth: 15000,
+    retire: 500000,
+    mortgage: 100000,
+    donateRate: 0.1,
+    minTaxThreshold: 1000000,
+    minTaxRate: 0.005
+  };
+
+  var counts = { child1: 0, child2: 0, parent: 0 };
+
+  var money0 = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
+  var money2 = new Intl.NumberFormat("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function f0(n){ return money0.format(Math.round(n)); }
+  function f2(n){ return money2.format(n); }
+
+  function val(id){
+    // ตัดตัวคั่นหลักพันทุกแบบออก แต่คงเครื่องหมายลบไว้เพื่อให้ค่าติดลบถูกปัดทิ้ง
+    var raw = $(id).value.replace(/[,\s  ]/g, "");
+    var n = parseFloat(raw);
+    return (isNaN(n) || n < 0) ? 0 : n;
+  }
+
+  // ภาษีตามขั้นบันได คืนยอดรวมและรายละเอียดรายขั้น
+  function taxOf(net){
+    var rows = [], total = 0, lower = 0;
+    for (var i = 0; i < BRACKETS.length; i++) {
+      var b = BRACKETS[i];
+      var span = Math.max(0, Math.min(net, b.upto) - lower);
+      var t = span * b.rate;
+      total += t;
+      rows.push({ lower: lower, upper: b.upto, rate: b.rate, used: span, tax: t });
+      lower = b.upto;
+      if (net <= b.upto) {
+        for (var j = i + 1; j < BRACKETS.length; j++) {
+          rows.push({ lower: BRACKETS[j - 1].upto, upper: BRACKETS[j].upto, rate: BRACKETS[j].rate, used: 0, tax: 0 });
+        }
+        break;
+      }
+    }
+    return { total: total, rows: rows };
+  }
+
+  function compute(){
+    var salary = val("salary");
+    var freelance = val("freelance");
+    var gross = salary + freelance;
+
+    // ประเภทที่ 1 และ 2 หักค่าใช้จ่าย 50% รวมกันไม่เกิน 100,000
+    var expense = Math.min(gross * LIMITS.expenseRate, LIMITS.expenseCap);
+
+    // --- ค่าลดหย่อน ---
+    var d = [];
+    d.push({ k: "ส่วนตัว", v: LIMITS.personal });
+    if ($("spouse").checked) d.push({ k: "คู่สมรสไม่มีเงินได้", v: LIMITS.spouse });
+    if (counts.child1) d.push({ k: "บุตร " + counts.child1 + " คน", v: counts.child1 * LIMITS.child1 });
+    if (counts.child2) d.push({ k: "บุตรคนที่ 2 ขึ้นไป " + counts.child2 + " คน", v: counts.child2 * LIMITS.child2 });
+    if (counts.parent) d.push({ k: "บิดามารดา " + counts.parent + " คน", v: counts.parent * LIMITS.parent });
+
+    var sso = Math.min(val("sso"), LIMITS.sso);
+    if (sso) d.push({ k: "ประกันสังคม", v: sso });
+
+    // ประกันสุขภาพตนเองไม่เกิน 25,000 และเมื่อรวมประกันชีวิตต้องไม่เกิน 100,000
+    var health = Math.min(val("health"), LIMITS.health);
+    var life = val("life");
+    var lifeHealth = Math.min(life + health, LIMITS.lifeHealthCombined);
+    if (lifeHealth) d.push({ k: "ประกันชีวิตและประกันสุขภาพ", v: lifeHealth });
+
+    var phealth = Math.min(val("phealth"), LIMITS.parentHealth);
+    if (phealth) d.push({ k: "ประกันสุขภาพบิดามารดา", v: phealth });
+
+    var retire = Math.min(val("retire"), LIMITS.retire);
+    if (retire) d.push({ k: "กองทุนเพื่อการเกษียณ", v: retire });
+
+    var mortgage = Math.min(val("mortgage"), LIMITS.mortgage);
+    if (mortgage) d.push({ k: "ดอกเบี้ยเงินกู้ที่อยู่อาศัย", v: mortgage });
+
+    var deductions = d.reduce(function(s, x){ return s + x.v; }, 0);
+
+    // เงินบริจาคหักหลังสุด เพดาน 10% ของเงินได้หลังหักค่าใช้จ่ายและค่าลดหย่อนอื่น
+    var base = Math.max(0, gross - expense - deductions);
+    var cap = base * LIMITS.donateRate;
+    var eduClaim = Math.min(val("edu") * 2, cap);
+    var donateClaim = Math.min(val("donate"), Math.max(0, cap - eduClaim));
+    var donations = eduClaim + donateClaim;
+
+    var net = Math.max(0, base - donations);
+    var res = taxOf(net);
+    var tax = res.total;
+
+    // เงินได้ประเภท 2-8 เกิน 1 ล้าน ภาษีต้องไม่ต่ำกว่า 0.5% ของเงินได้นั้น
+    var minTax = 0, minTaxApplies = false;
+    if (freelance > LIMITS.minTaxThreshold) {
+      minTax = freelance * LIMITS.minTaxRate;
+      if (minTax > tax) { minTaxApplies = true; tax = minTax; }
+    }
+
+    return {
+      gross: gross, expense: expense, deductionList: d, deductions: deductions,
+      eduClaim: eduClaim, donateClaim: donateClaim, donations: donations, cap: cap,
+      net: net, rows: res.rows, bracketTax: res.total, tax: tax,
+      minTax: minTax, minTaxApplies: minTaxApplies
+    };
+  }
+
+  function render(){
+    var r = compute();
+
+    $("taxOut").textContent = r.tax > 0 ? f2(r.tax) : "0";
+    $("taxOut").className = "big num" + (r.tax > 0 ? "" : " zero");
+    $("effOut").textContent = r.gross > 0 ? (r.tax / r.gross * 100).toFixed(2) + "%" : "0%";
+
+    // --- ที่มาของตัวเลข ---
+    var b = [];
+    b.push(line("เงินได้ทั้งปี", f0(r.gross), "sum"));
+    b.push(line("หักค่าใช้จ่าย 50% สูงสุด 100,000", "−" + f0(r.expense), "minus"));
+    r.deductionList.forEach(function(x){
+      b.push(line("หัก " + x.k, "−" + f0(x.v), "minus"));
+    });
+    if (r.eduClaim) b.push(line("หักบริจาคเพื่อการศึกษา 2 เท่า", "−" + f0(r.eduClaim), "minus"));
+    if (r.donateClaim) b.push(line("หักบริจาคทั่วไป", "−" + f0(r.donateClaim), "minus"));
+    b.push(line("เงินได้สุทธิ", f0(r.net), "sum"));
+    b.push(line("ภาษีตามขั้นบันได", f2(r.bracketTax), "sum"));
+    $("breakdown").innerHTML = b.join("");
+
+    // --- ขั้นบันได ---
+    var here = -1;
+    r.rows.forEach(function(row, i){ if (row.used > 0) here = i; });
+
+    $("ladder").innerHTML = r.rows.map(function(row, i){
+      var span = row.upper === Infinity ? Infinity : row.upper - row.lower;
+      var pct = span === Infinity ? (row.used > 0 ? 100 : 0) : Math.min(100, row.used / span * 100);
+      var label = row.rate === 0
+        ? "0 – " + f0(row.upper) + " ยกเว้นภาษี"
+        : f0(row.lower + 1) + " – " + (row.upper === Infinity ? "ขึ้นไป" : f0(row.upper));
+      var cls = "rung" + (row.used > 0 ? "" : " off") + (i === here ? " here" : "");
+      // ความเข้มของแถบไล่ตามอัตราภาษีจริง ขั้นสูงเข้มกว่าขั้นต่ำ
+      var op = (0.35 + row.rate * 1.9).toFixed(2);
+      return '<div class="' + cls + '">' +
+               '<span class="rate">' + Math.round(row.rate * 100) + "%</span>" +
+               '<span class="band">' +
+                 '<span class="rng">' + label + (i === here ? '<span class="here-tag">ขั้นของคุณ</span>' : "") + "</span>" +
+                 '<span class="track"><i style="width:' + pct.toFixed(1) + "%;opacity:" + op + '"></i></span>' +
+               "</span>" +
+               '<span class="amt">' + (row.tax > 0 ? f0(row.tax) : "—") + "</span>" +
+             "</div>";
+    }).join("");
+
+    // --- ขั้นต่ำ 0.5% ---
+    var mn = $("minTaxNote");
+    if (r.minTaxApplies) {
+      mn.hidden = false;
+      mn.innerHTML = "รายได้ฟรีแลนซ์เกิน 1,000,000 บาท กฎหมายกำหนดว่าภาษีต้องไม่ต่ำกว่า 0.5% ของเงินได้ส่วนนั้น " +
+                     "คือ <b>" + f2(r.minTax) + "</b> บาท ซึ่งสูงกว่าภาษีขั้นบันได " + f2(r.bracketTax) +
+                     " บาท จึงใช้ยอดขั้นต่ำแทน";
+    } else {
+      mn.hidden = true;
+    }
+
+    // --- เคล็ดลับ: ลดหย่อนเพิ่มแล้วประหยัดเท่าไหร่ ---
+    var tip = $("tip");
+    if (r.tax > 0 && !r.minTaxApplies) {
+      var saved = r.bracketTax - taxOf(Math.max(0, r.net - 10000)).total;
+      var marginal = r.rows.reduce(function(m, row){ return row.used > 0 ? row.rate : m; }, 0);
+      tip.hidden = false;
+      $("tipText").innerHTML = "ตอนนี้คุณอยู่ในขั้น <b>" + Math.round(marginal * 100) + "%</b> " +
+        "ถ้าหาค่าลดหย่อนเพิ่มได้อีก 10,000 บาท จะประหยัดภาษีได้ <b>" + f2(saved) + "</b> บาท";
+    } else {
+      tip.hidden = true;
+    }
+  }
+
+  function line(k, v, cls){
+    return '<div class="line ' + (cls || "") + '"><span>' + k + "</span><span class=\"num\">" + v + "</span></div>";
+  }
+
+  // --- events ---
+  // ใส่ลูกน้ำให้อ่านง่ายตอนออกจากช่อง แต่ไม่ยุ่งกับตัวเลขระหว่างพิมพ์
+  var moneyIn = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 2 });
+
+  var inputs = ["salary", "freelance", "sso", "life", "health", "phealth", "retire", "mortgage", "edu", "donate"];
+  inputs.forEach(function(id){
+    var el = $(id);
+    el.addEventListener("input", render);
+    el.addEventListener("blur", function(){
+      var n = val(id);
+      el.value = n ? moneyIn.format(n) : "";
+    });
+  });
+  $("spouse").addEventListener("change", render);
+
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-step]");
+    if (!btn) return;
+    var k = btn.dataset.step;
+    var max = k === "parent" ? LIMITS.parentMax : 10;
+    counts[k] = Math.max(0, Math.min(max, counts[k] + (+btn.dataset.d)));
+    $(k + "v").textContent = counts[k];
+    render();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
