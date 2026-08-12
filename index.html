@@ -19,6 +19,8 @@
     --on-in:#FFFFFF;
     --out:#B23F34;
     --out-soft:#F6E2DF;
+    --warn:#8A6216;
+    --warn-soft:#F4EAD5;
     --focus:#0D5E4C;
     --shadow:0 1px 2px rgba(20,32,28,.06), 0 8px 24px -16px rgba(20,32,28,.35);
     --r:14px;
@@ -37,6 +39,8 @@
       --on-in:#0E1513;
       --out:#EC8074;
       --out-soft:#38211E;
+      --warn:#DDA83F;
+      --warn-soft:#332913;
       --focus:#3FC495;
       --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
     }
@@ -54,6 +58,8 @@
     --on-in:#0E1513;
     --out:#EC8074;
     --out-soft:#38211E;
+    --warn:#DDA83F;
+    --warn-soft:#332913;
     --focus:#3FC495;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
   }
@@ -181,7 +187,7 @@
     padding:16px;
     box-shadow:var(--shadow);
   }
-  .card > h2{
+  .card h2{
     margin:0 0 12px;
     font-size:.72rem;
     font-weight:600;
@@ -343,6 +349,128 @@
   }
   form.editing .edit-bar{display:flex}
 
+  /* ---------- budget ---------- */
+  .budget .head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .budget .head h2{margin:0}
+  .budget .edit{
+    font-size:.75rem;
+    color:var(--muted);
+    padding:3px 9px;
+    border-radius:8px;
+    white-space:nowrap;
+  }
+  .budget .edit:hover{background:var(--surface-2);color:var(--ink)}
+
+  .budget .figures{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .budget .spent{font-size:1.5rem;font-weight:600;line-height:1.1}
+  .budget .of{font-size:.8rem;font-weight:400;color:var(--muted);margin-left:5px}
+  .budget .pct{font-size:.9rem;font-weight:650;color:var(--muted)}
+  .budget.warn .pct{color:var(--warn)}
+  .budget.over .pct{color:var(--out)}
+  .budget.over .spent{color:var(--out)}
+
+  .meter{
+    position:relative;
+    height:10px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .meter i{
+    display:block;
+    height:100%;
+    border-radius:99px;
+    background:var(--in);
+    transition:width .35s ease;
+  }
+  .budget.warn .meter i{background:var(--warn)}
+  .budget.over .meter i{background:var(--out)}
+  .meter .today-mark{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:var(--ink);
+    opacity:.28;
+  }
+
+  .budget .status{
+    margin:12px 0 0;
+    font-size:.84rem;
+    color:var(--muted);
+    line-height:1.65;
+  }
+  .budget .status b{color:var(--ink);font-weight:650}
+  .budget.over .status b{color:var(--out)}
+
+  .pace{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:11px;
+    padding:4px 10px;
+    border-radius:99px;
+    font-size:.75rem;
+    font-weight:600;
+  }
+  .pace.good{background:var(--in-soft);color:var(--in)}
+  .pace.mid{background:var(--surface-2);color:var(--muted)}
+  .pace.bad{background:var(--out-soft);color:var(--out)}
+
+  .budget .none{
+    font-size:.86rem;
+    color:var(--muted);
+    line-height:1.6;
+    margin:0;
+  }
+
+  .budget-form{display:none;gap:8px;margin-top:14px}
+  .budget-form.open{display:flex}
+  .budget-form input{
+    flex:1;
+    min-width:0;
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    color:var(--ink);
+    padding:11px 12px;
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:1rem;
+    font-weight:600;
+  }
+  .budget-form input:focus{outline:none;border-color:var(--focus)}
+  .budget-form .btn{flex:0 0 auto}
+
+  .budget-hint{
+    display:none;
+    margin:10px 0 0;
+    font-size:.74rem;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .budget-hint.open{display:block}
+  .linkish{
+    color:var(--out);
+    font-size:.74rem;
+    font-weight:600;
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+
   /* ---------- breakdown ---------- */
   .bd{display:flex;flex-direction:column;gap:12px}
   .bd-row{display:flex;flex-direction:column;gap:6px}
@@ -390,7 +518,7 @@
     background:var(--out);
   }
   .tx.in .tick{background:var(--in)}
-  .tx .body{flex:1;min-width:0}
+  .tx .body{flex:1;min-width:0;text-align:left}
   .tx .cat{font-size:.94rem;font-weight:500}
   .tx .note{
     font-size:.78rem;
@@ -461,6 +589,8 @@
     text-align:center;
   }
   .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.alert{background:var(--out);color:#fff}
+  .toast.notice{background:var(--warn);color:#fff}
 
   .colophon{
     text-align:center;
@@ -499,6 +629,25 @@
       <div class="i"><span>รายรับ</span><strong class="num" id="sumIn">0.00</strong></div>
       <div class="o"><span>รายจ่าย</span><strong class="num" id="sumOut">0.00</strong></div>
     </div>
+  </section>
+
+  <section class="card budget" id="budgetCard">
+    <div class="head">
+      <h2>งบประมาณเดือนนี้</h2>
+      <button type="button" class="edit" id="budgetEdit">ตั้งงบ</button>
+    </div>
+
+    <div id="budgetBody"></div>
+
+    <div class="budget-form" id="budgetForm">
+      <input id="budgetInput" type="text" inputmode="decimal" placeholder="เช่น 15000" aria-label="งบประมาณต่อเดือน">
+      <button type="button" class="btn" id="budgetSave">บันทึก</button>
+    </div>
+
+    <p class="budget-hint" id="budgetHint">
+      ใช้เป็นค่าตั้งต้นของเดือนอื่นที่ยังไม่ได้ตั้งงบแยกไว้<span id="budgetClearWrap">
+      · <button type="button" class="linkish" id="budgetClear">ลบงบเดือนนี้</button></span>
+    </p>
   </section>
 
   <section class="card">
@@ -579,7 +728,9 @@
 
   /* ---------- storage : localStorage with in-memory fallback ---------- */
   var KEY = "ledger.green.v1";
+  var BKEY = "ledger.green.budget.v1";
   var memory = null;
+  var memBudgets = null;
   var storageOK = true;
   try {
     localStorage.setItem(KEY + ".probe", "1");
@@ -611,10 +762,37 @@
     in:  ["เงินเดือน", "โบนัส", "ขายของ", "ของขวัญ", "อื่นๆ"]
   };
   var tx = load();
+  var budgets = loadBudgets();
   var type = "out";
   var cat = CATS.out[0];
   var editingId = null;
   var ym = ymOf(new Date());
+
+  function loadBudgets(){
+    var raw = null;
+    if (storageOK) {
+      try { raw = JSON.parse(localStorage.getItem(BKEY) || "null"); } catch (e) {}
+    } else {
+      raw = memBudgets;
+    }
+    if (raw && typeof raw === "object") {
+      return { def: typeof raw.def === "number" ? raw.def : null, months: raw.months || {} };
+    }
+    return { def: null, months: {} };
+  }
+
+  function saveBudgets(){
+    if (!storageOK) { memBudgets = budgets; return; }
+    try { localStorage.setItem(BKEY, JSON.stringify(budgets)); }
+    catch (e) { storageOK = false; memBudgets = budgets; markStorage(); }
+  }
+
+  // งบของเดือนนั้น ถ้าไม่ได้ตั้งแยกไว้ ใช้ค่าตั้งต้นแทน
+  function budgetFor(key){
+    var m = budgets.months[key];
+    if (typeof m === "number" && m > 0) return m;
+    return budgets.def;
+  }
 
   /* ---------- helpers ---------- */
   function $(id){ return document.getElementById(id); }
@@ -636,16 +814,29 @@
   }
 
   var toastTimer;
-  function toast(msg){
+  function toast(msg, kind){
     var t = $("toast");
     t.textContent = msg;
-    t.classList.add("show");
+    t.className = "toast show" + (kind ? " " + kind : "");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2400);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, kind ? 4200 : 2400);
   }
 
   function inMonth(){
     return tx.filter(function(r){ return r.date.slice(0, 7) === ym; });
+  }
+
+  function spentIn(key){
+    var n = 0;
+    tx.forEach(function(r){
+      if (r.type === "out" && r.date.slice(0, 7) === key) n += r.amount;
+    });
+    return n;
+  }
+
+  function monthDays(key){
+    var p = key.split("-");
+    return new Date(+p[0], +p[1], 0).getDate();
   }
 
   /* ---------- render ---------- */
@@ -665,6 +856,71 @@
                    '<span class="baht">บาท</span>';
     $("sumIn").textContent = fmt(i);
     $("sumOut").textContent = fmt(o);
+  }
+
+  function renderBudget(){
+    var card = $("budgetCard");
+    var body = $("budgetBody");
+    var b = budgetFor(ym);
+
+    card.className = "card budget";
+    $("budgetEdit").textContent = b ? "แก้ไข" : "ตั้งงบ";
+    $("budgetHint").classList.toggle("open", $("budgetForm").classList.contains("open"));
+    $("budgetClearWrap").hidden = !b;
+
+    if (!b) {
+      body.innerHTML = '<p class="none">ตั้งงบไว้แล้วแอปจะคอยบอกว่าใช้ไปกี่เปอร์เซ็นต์ ' +
+                       'เหลือใช้ได้วันละเท่าไหร่ และเตือนทันทีเมื่อใกล้เกินหรือเกินงบ</p>';
+      return;
+    }
+
+    var spent = spentIn(ym);
+    var pct = spent / b * 100;
+    var left = b - spent;
+
+    if (pct >= 100) card.className = "card budget over";
+    else if (pct >= 80) card.className = "card budget warn";
+
+    var days = monthDays(ym);
+    var now = new Date();
+    var current = ym === ymOf(now);
+    var elapsed = current ? now.getDate() : days;
+    var daysLeft = current ? days - now.getDate() + 1 : 0;
+
+    var html = '<div class="figures">' +
+                 '<span class="spent num">' + fmt(spent) +
+                   '<span class="of">จาก ' + fmt(b) + '</span></span>' +
+                 '<span class="pct num">' + Math.round(pct) + "%</span>" +
+               "</div>" +
+               '<div class="meter"><i style="width:' + Math.min(pct, 100).toFixed(1) + '%"></i>' +
+                 (current && pct < 100
+                   ? '<span class="today-mark" style="left:' + (elapsed / days * 100).toFixed(1) +
+                     '%" title="ควรใช้ไม่เกินนี้ ณ วันนี้"></span>'
+                   : "") +
+               "</div>";
+
+    if (left < 0) {
+      html += '<p class="status">เกินงบมาแล้ว <b>' + fmt(-left) + "</b> บาท" +
+              (current ? " และยังเหลืออีก " + daysLeft + " วันกว่าจะหมดเดือน" : "") + "</p>";
+    } else if (current) {
+      html += '<p class="status">เหลือ <b>' + fmt(left) + "</b> บาท · อีก " + daysLeft +
+              " วัน ใช้ได้วันละ ~<b>" + fmt(left / daysLeft) + "</b> บาท</p>";
+    } else {
+      html += '<p class="status">เหลือ <b>' + fmt(left) + "</b> บาท</p>";
+    }
+
+    // เทียบกับจังหวะที่ควรจะใช้ ณ วันนี้ของเดือน
+    if (current && left >= 0) {
+      var expected = b * (elapsed / days);
+      var pace = spent > expected * 1.1
+        ? { c: "bad", t: "▲ ใช้เร็วกว่าแผน" }
+        : spent < expected * 0.9
+          ? { c: "good", t: "▼ ประหยัดกว่าแผน" }
+          : { c: "mid", t: "● ตามแผน" };
+      html += '<span class="pace ' + pace.c + '">' + pace.t + "</span>";
+    }
+
+    body.innerHTML = html;
   }
 
   function renderBreakdown(){
@@ -752,6 +1008,7 @@
   function renderAll(){
     renderMonth();
     renderBalance();
+    renderBudget();
     renderBreakdown();
     renderList();
   }
@@ -804,6 +1061,23 @@
 
   $("cancelEdit").addEventListener("click", resetForm);
 
+  // เตือนเฉพาะตอนที่ "เพิ่งข้าม" เส้น จะได้ไม่เตือนซ้ำทุกครั้งที่บันทึก
+  function budgetAlert(key, before, after){
+    var b = budgetFor(key);
+    if (!b || after <= before) return null;
+
+    if (before < b && after >= b) {
+      return { msg: "⚠️ เกินงบเดือนนี้แล้ว " + fmt(after - b) + " บาท", kind: "alert" };
+    }
+    if (before < b * 0.8 && after >= b * 0.8 && after < b) {
+      return {
+        msg: "ใช้งบไปแล้ว " + Math.round(after / b * 100) + "% เหลืออีก " + fmt(b - after) + " บาท",
+        kind: "notice"
+      };
+    }
+    return null;
+  }
+
   $("form").addEventListener("submit", function(e){
     e.preventDefault();
     var raw = $("amount").value.replace(/,/g, "").trim();
@@ -817,6 +1091,9 @@
 
     var date = $("date").value || isoOf(new Date());
     var note = $("note").value.trim();
+    var key = date.slice(0, 7);
+    var before = spentIn(key);
+    var msg;
 
     if (editingId) {
       tx = tx.map(function(r){
@@ -824,16 +1101,20 @@
           ? { id: r.id, type: type, amount: amt, cat: cat, note: note, date: date }
           : r;
       });
-      toast("แก้ไขแล้ว");
+      msg = "แก้ไขแล้ว";
     } else {
       tx.push({ id: Date.now(), type: type, amount: amt, cat: cat, note: note, date: date });
-      toast(type === "in" ? "บันทึกรายรับแล้ว" : "บันทึกรายจ่ายแล้ว");
+      msg = type === "in" ? "บันทึกรายรับแล้ว" : "บันทึกรายจ่ายแล้ว";
     }
 
-    ym = date.slice(0, 7);
+    ym = key;
     save();
     resetForm();
     renderAll();
+
+    var alt = budgetAlert(key, before, spentIn(key));
+    if (alt) toast(alt.msg, alt.kind);
+    else toast(msg);
   });
 
   $("list").addEventListener("click", function(e){
@@ -854,6 +1135,51 @@
     if (ed) startEdit(+ed.dataset.edit);
   });
 
+  $("budgetEdit").addEventListener("click", function(){
+    var form = $("budgetForm");
+    var open = form.classList.toggle("open");
+    $("budgetHint").classList.toggle("open", open);
+    if (open) {
+      var b = budgetFor(ym);
+      $("budgetInput").value = b ? String(b) : "";
+      $("budgetInput").focus();
+    }
+  });
+
+  $("budgetSave").addEventListener("click", function(){
+    var raw = $("budgetInput").value.replace(/,/g, "").trim();
+    var v = parseFloat(raw);
+
+    if (!raw || isNaN(v) || v <= 0) {
+      toast("ใส่จำนวนงบให้มากกว่า 0 ก่อนนะ");
+      $("budgetInput").focus();
+      return;
+    }
+
+    budgets.months[ym] = v;
+    budgets.def = v;
+    saveBudgets();
+
+    $("budgetForm").classList.remove("open");
+    $("budgetHint").classList.remove("open");
+    renderBudget();
+
+    var spent = spentIn(ym);
+    if (spent > v) toast("ตั้งงบ " + fmt(v) + " บาทแล้ว — เดือนนี้ใช้เกินไป " + fmt(spent - v) + " บาท", "alert");
+    else toast("ตั้งงบ " + fmt(v) + " บาทแล้ว");
+  });
+
+  $("budgetClear").addEventListener("click", function(){
+    if (!confirm("ลบงบของ " + monthName(ym) + "?")) return;
+    delete budgets.months[ym];
+    budgets.def = null;
+    saveBudgets();
+    $("budgetForm").classList.remove("open");
+    $("budgetHint").classList.remove("open");
+    renderBudget();
+    toast("ลบงบแล้ว");
+  });
+
   $("prevM").addEventListener("click", function(){ shiftMonth(-1); });
   $("nextM").addEventListener("click", function(){ shiftMonth(1); });
 
@@ -861,6 +1187,8 @@
     var p = ym.split("-");
     var d = new Date(+p[0], +p[1] - 1 + step, 1);
     ym = ymOf(d);
+    $("budgetForm").classList.remove("open");
+    $("budgetHint").classList.remove("open");
     renderAll();
   }
 
@@ -873,6 +1201,12 @@
     lines.push("");
     lines.push("— วางข้อความทั้งหมดนี้กลับในแอปเพื่อกู้คืน —");
     lines.push("");
+
+    if (budgets.def) lines.push("# งบ ต่อเดือน | " + budgets.def.toFixed(2));
+    Object.keys(budgets.months).sort().forEach(function(k){
+      lines.push("# งบ " + k + " | " + budgets.months[k].toFixed(2));
+    });
+    if (budgets.def || Object.keys(budgets.months).length) lines.push("");
 
     tx.slice().sort(function(a, b){ return a.date < b.date ? -1 : 1; }).forEach(function(r){
       lines.push([
@@ -887,6 +1221,21 @@
   }
 
   var LINE = /^(\d{4}-\d{2}-\d{2})\s*\|\s*(รับ|จ่าย)\s*\|\s*([^|]+?)\s*\|\s*([\d,]+(?:\.\d+)?)\s*\|\s*(.*)$/;
+  var BLINE = /^#\s*งบ\s+(ต่อเดือน|\d{4}-\d{2})\s*\|\s*([\d,]+(?:\.\d+)?)$/;
+
+  function budgetsFromText(text){
+    var found = { def: null, months: {} }, any = false;
+    text.split(/\r?\n/).forEach(function(line){
+      var m = BLINE.exec(line.trim());
+      if (!m) return;
+      var v = parseFloat(m[2].replace(/,/g, ""));
+      if (isNaN(v) || v <= 0) return;
+      any = true;
+      if (m[1] === "ต่อเดือน") found.def = v;
+      else found.months[m[1]] = v;
+    });
+    return any ? found : null;
+  }
 
   function fromText(text){
     var out = [];
@@ -953,10 +1302,19 @@
   });
 
   $("importBtn").addEventListener("click", function(){
-    var rows = fromText($("importText").value);
-    if (!rows.length) {
+    var text = $("importText").value;
+    var rows = fromText(text);
+    var b = budgetsFromText(text);
+
+    if (!rows.length && !b) {
       toast("ไม่พบรายการในข้อความที่วางมา");
       return;
+    }
+
+    if (b) {
+      if (b.def) budgets.def = b.def;
+      Object.keys(b.months).forEach(function(k){ budgets.months[k] = b.months[k]; });
+      saveBudgets();
     }
 
     var seen = {};
@@ -975,7 +1333,11 @@
     renderAll();
     $("importText").value = "";
     $("importPanel").classList.remove("open");
-    toast(added ? "กู้คืน " + added + " รายการแล้ว" : "รายการทั้งหมดมีอยู่แล้ว");
+
+    var parts = [];
+    if (added) parts.push("กู้คืน " + added + " รายการ");
+    if (b) parts.push("กู้คืนงบประมาณ");
+    toast(parts.length ? parts.join(" · ") + "แล้ว" : "รายการทั้งหมดมีอยู่แล้ว");
   });
 
   $("clearBtn").addEventListener("click", function(){
