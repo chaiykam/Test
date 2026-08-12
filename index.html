@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดบัญชีเล่มเขียว</title>
+<style>
+  /* ---------- tokens : light (bare :root) ---------- */
+  :root{
+    --bg:#EEF1F0;
+    --surface:#FFFFFF;
+    --surface-2:#F5F8F7;
+    --ink:#14201C;
+    --muted:#66746F;
+    --line:#DCE3E0;
+    --line-strong:#C4CFCB;
+    --in:#0D5E4C;
+    --in-soft:#DDEDE7;
+    --on-in:#FFFFFF;
+    --out:#B23F34;
+    --out-soft:#F6E2DF;
+    --focus:#0D5E4C;
+    --shadow:0 1px 2px rgba(20,32,28,.06), 0 8px 24px -16px rgba(20,32,28,.35);
+    --r:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1513;
+      --surface:#16201D;
+      --surface-2:#1C2724;
+      --ink:#E6EDEA;
+      --muted:#93A29D;
+      --line:#27332F;
+      --line-strong:#35443F;
+      --in:#3FC495;
+      --in-soft:#12312A;
+      --on-in:#0E1513;
+      --out:#EC8074;
+      --out-soft:#38211E;
+      --focus:#3FC495;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1513;
+    --surface:#16201D;
+    --surface-2:#1C2724;
+    --ink:#E6EDEA;
+    --muted:#93A29D;
+    --line:#27332F;
+    --line-strong:#35443F;
+    --in:#3FC495;
+    --in-soft:#12312A;
+    --on-in:#0E1513;
+    --out:#EC8074;
+    --out-soft:#38211E;
+    --focus:#3FC495;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Noto Sans Thai", "Sarabun", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+
+  .num{
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+  }
+
+  .wrap{
+    max-width:560px;
+    margin:0 auto;
+    padding:16px 16px calc(48px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    padding-top:calc(8px + env(safe-area-inset-top));
+  }
+  .masthead h1{
+    margin:0;
+    font-size:1.05rem;
+    font-weight:650;
+    letter-spacing:-.01em;
+  }
+  .masthead .mark{color:var(--in)}
+  .storage-note{
+    font-size:.72rem;
+    color:var(--muted);
+    text-align:right;
+    max-width:180px;
+  }
+
+  /* ---------- month strip ---------- */
+  .month{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:6px;
+    box-shadow:var(--shadow);
+  }
+  .month b{font-size:.95rem;font-weight:600}
+  .month .today{
+    display:block;
+    font-size:.72rem;
+    font-weight:400;
+    color:var(--muted);
+  }
+  .month-label{text-align:center;line-height:1.25}
+
+  /* ---------- balance ---------- */
+  .balance{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:20px 18px 16px;
+    box-shadow:var(--shadow);
+  }
+  .balance .lbl{
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--muted);
+  }
+  .balance .total{
+    display:block;
+    margin-top:6px;
+    font-size:2.35rem;
+    font-weight:600;
+    line-height:1.1;
+  }
+  .balance .total.pos{color:var(--in)}
+  .balance .total.neg{color:var(--out)}
+  .balance .baht{font-size:1rem;font-weight:500;color:var(--muted);margin-left:6px}
+
+  .split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    margin-top:18px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .split div{background:var(--surface-2);padding:10px 12px}
+  .split span{
+    display:block;
+    font-size:.72rem;
+    color:var(--muted);
+    margin-bottom:2px;
+  }
+  .split strong{font-size:1.02rem;font-weight:600}
+  .split .i strong{color:var(--in)}
+  .split .o strong{color:var(--out)}
+
+  /* ---------- generic card ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:16px;
+    box-shadow:var(--shadow);
+  }
+  .card > h2{
+    margin:0 0 12px;
+    font-size:.72rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--muted);
+  }
+
+  /* ---------- buttons ---------- */
+  button{
+    font:inherit;
+    color:inherit;
+    background:none;
+    border:none;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .icon-btn{
+    width:40px;height:40px;
+    border-radius:10px;
+    display:grid;place-items:center;
+    color:var(--muted);
+    font-size:1.1rem;
+  }
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+
+  .btn{
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    padding:11px 14px;
+    font-size:.9rem;
+    font-weight:550;
+    background:var(--surface-2);
+    transition:transform .1s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.985)}
+  .btn.primary{
+    background:var(--in);
+    border-color:var(--in);
+    color:var(--on-in);
+    width:100%;
+    padding:14px;
+    font-size:.98rem;
+  }
+  .btn.ghost{background:transparent}
+
+  :focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+
+  /* ---------- form ---------- */
+  form{display:flex;flex-direction:column;gap:14px}
+
+  .seg{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:4px;
+  }
+  .seg button{
+    padding:10px;
+    border-radius:8px;
+    font-size:.92rem;
+    font-weight:550;
+    color:var(--muted);
+  }
+  .seg button[aria-pressed="true"]{background:var(--surface);box-shadow:var(--shadow)}
+  .seg button[data-t="out"][aria-pressed="true"]{color:var(--out)}
+  .seg button[data-t="in"][aria-pressed="true"]{color:var(--in)}
+
+  .amount-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:2px solid var(--line-strong);
+    padding-bottom:8px;
+  }
+  .amount-row:focus-within{border-bottom-color:var(--focus)}
+  .amount-row .sign{font-size:1.7rem;font-weight:600;color:var(--muted)}
+  .amount-row.out .sign{color:var(--out)}
+  .amount-row.in .sign{color:var(--in)}
+  input#amount{
+    flex:1;
+    min-width:0;
+    border:none;
+    background:none;
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:2rem;
+    font-weight:600;
+    color:var(--ink);
+    padding:0;
+    letter-spacing:-.02em;
+  }
+  input#amount:focus{outline:none}
+  input#amount::placeholder{color:var(--line-strong)}
+  .amount-row .unit{font-size:.85rem;color:var(--muted)}
+
+  .chips{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;
+    border:1px solid var(--line-strong);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:.85rem;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .chip[aria-pressed="true"]{
+    background:var(--in-soft);
+    border-color:var(--in);
+    color:var(--in);
+    font-weight:550;
+  }
+  form.is-out .chip[aria-pressed="true"]{
+    background:var(--out-soft);
+    border-color:var(--out);
+    color:var(--out);
+  }
+
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+  .field input{
+    width:100%;
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    color:var(--ink);
+    padding:11px 12px;
+    font:inherit;
+    font-size:.95rem;
+  }
+  .field input:focus{outline:none;border-color:var(--focus)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .edit-bar{
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:var(--surface-2);
+    border:1px dashed var(--line-strong);
+    border-radius:10px;
+    padding:8px 8px 8px 12px;
+    font-size:.85rem;
+    color:var(--muted);
+  }
+  form.editing .edit-bar{display:flex}
+
+  /* ---------- breakdown ---------- */
+  .bd{display:flex;flex-direction:column;gap:12px}
+  .bd-row{display:flex;flex-direction:column;gap:6px}
+  .bd-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    font-size:.88rem;
+  }
+  .bd-top em{font-style:normal;color:var(--muted);font-size:.78rem;margin-left:6px}
+  .bar{height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--out);border-radius:99px}
+  .bd-row.in .bar i{background:var(--in)}
+
+  /* ---------- ledger list ---------- */
+  .day{margin-top:4px}
+  .day-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    padding:0 2px 6px;
+    font-size:.75rem;
+    color:var(--muted);
+    border-bottom:1px solid var(--line);
+  }
+  .day-head b{font-weight:600;color:var(--ink);font-size:.82rem}
+
+  .tx{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 2px;
+    text-align:left;
+    border-bottom:1px solid var(--line);
+  }
+  .tx:last-child{border-bottom:none}
+  .tx:hover{background:var(--surface-2)}
+  .tx .tick{
+    flex:0 0 3px;
+    align-self:stretch;
+    border-radius:99px;
+    background:var(--out);
+  }
+  .tx.in .tick{background:var(--in)}
+  .tx .body{flex:1;min-width:0}
+  .tx .cat{font-size:.94rem;font-weight:500}
+  .tx .note{
+    font-size:.78rem;
+    color:var(--muted);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .tx .amt{font-size:.98rem;font-weight:600;color:var(--out);white-space:nowrap}
+  .tx.in .amt{color:var(--in)}
+  .tx .del{
+    flex:0 0 auto;
+    width:30px;height:30px;
+    border-radius:8px;
+    display:grid;place-items:center;
+    color:var(--muted);
+    font-size:1rem;
+  }
+  .tx .del:hover{background:var(--out-soft);color:var(--out)}
+
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:.88rem;
+    padding:26px 10px;
+    line-height:1.7;
+  }
+  .empty .big{font-size:1.5rem;display:block;margin-bottom:6px;opacity:.5}
+
+  /* ---------- backup ---------- */
+  .backup .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .backup p{margin:0 0 12px;font-size:.82rem;color:var(--muted);line-height:1.6}
+  textarea{
+    width:100%;
+    min-height:120px;
+    margin-top:10px;
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    color:var(--ink);
+    padding:11px;
+    font-family:ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Roboto Mono", monospace;
+    font-size:.78rem;
+    line-height:1.6;
+    resize:vertical;
+  }
+  textarea:focus{outline:none;border-color:var(--focus)}
+  .backup .panel{display:none;margin-top:4px}
+  .backup .panel.open{display:block}
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:calc(22px + env(safe-area-inset-bottom));
+    transform:translate(-50%, 14px);
+    background:var(--ink);
+    color:var(--bg);
+    padding:11px 18px;
+    border-radius:99px;
+    font-size:.85rem;
+    font-weight:500;
+    box-shadow:0 10px 30px -10px rgba(0,0,0,.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:20;
+    max-width:88vw;
+    text-align:center;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .colophon{
+    text-align:center;
+    font-size:.72rem;
+    color:var(--muted);
+    line-height:1.7;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <h1><span class="mark">▮</span> สมุดบัญชีเล่มเขียว</h1>
+    <div class="storage-note" id="storageNote">บันทึกไว้ในเครื่องนี้</div>
+  </header>
+
+  <nav class="month" aria-label="เลือกเดือน">
+    <button class="icon-btn" id="prevM" aria-label="เดือนก่อนหน้า">‹</button>
+    <div class="month-label">
+      <b id="monthLabel">—</b>
+      <span class="today" id="todayLabel"></span>
+    </div>
+    <button class="icon-btn" id="nextM" aria-label="เดือนถัดไป">›</button>
+  </nav>
+
+  <section class="balance" aria-label="สรุปยอด">
+    <span class="lbl">คงเหลือเดือนนี้</span>
+    <span class="total num" id="total">0.00<span class="baht">บาท</span></span>
+    <div class="split">
+      <div class="i"><span>รายรับ</span><strong class="num" id="sumIn">0.00</strong></div>
+      <div class="o"><span>รายจ่าย</span><strong class="num" id="sumOut">0.00</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>บันทึกรายการ</h2>
+    <form id="form" class="is-out" autocomplete="off">
+
+      <div class="edit-bar">
+        <span>กำลังแก้ไขรายการเดิม</span>
+        <button type="button" class="btn ghost" id="cancelEdit">ยกเลิก</button>
+      </div>
+
+      <div class="seg" role="group" aria-label="ประเภทรายการ">
+        <button type="button" data-t="out" aria-pressed="true">− รายจ่าย</button>
+        <button type="button" data-t="in" aria-pressed="false">+ รายรับ</button>
+      </div>
+
+      <div class="amount-row out" id="amountRow">
+        <span class="sign" id="sign" aria-hidden="true">−</span>
+        <input id="amount" type="text" inputmode="decimal" placeholder="0.00" aria-label="จำนวนเงิน">
+        <span class="unit">บาท</span>
+      </div>
+
+      <div class="chips" id="chips" role="group" aria-label="หมวดหมู่"></div>
+
+      <div class="two">
+        <div class="field">
+          <label for="date">วันที่</label>
+          <input id="date" type="date">
+        </div>
+        <div class="field">
+          <label for="note">บันทึกย่อ</label>
+          <input id="note" type="text" placeholder="เช่น ข้าวมันไก่">
+        </div>
+      </div>
+
+      <button type="submit" class="btn primary" id="submitBtn">เพิ่มรายการ</button>
+    </form>
+  </section>
+
+  <section class="card" id="bdCard" hidden>
+    <h2>สัดส่วนตามหมวด</h2>
+    <div class="bd" id="bd"></div>
+  </section>
+
+  <section class="card">
+    <h2>รายการทั้งหมด</h2>
+    <div id="list"></div>
+  </section>
+
+  <section class="card backup">
+    <h2>สำรองข้อมูลไปโน้ต</h2>
+    <p>ข้อมูลเก็บอยู่ในเบราว์เซอร์ของเครื่องนี้เท่านั้น กด “ส่งไปโน้ต” เพื่อคัดลอกเป็นข้อความไปวางในแอปโน้ตของมือถือ แล้ววางกลับมากู้คืนได้ทุกเมื่อ</p>
+    <div class="row">
+      <button class="btn" id="exportBtn">ส่งไปโน้ต</button>
+      <button class="btn" id="importToggle">วางกลับ</button>
+    </div>
+    <div class="panel" id="importPanel">
+      <textarea id="importText" placeholder="วางข้อความที่คัดลอกจากโน้ตลงตรงนี้"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="importBtn">กู้คืนข้อมูล</button>
+        <button class="btn ghost" id="clearBtn">ล้างทั้งหมด</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="colophon">
+    ทุกอย่างทำงานในเครื่อง ไม่มีการส่งข้อมูลออกไปที่ไหน<br>
+    ล้างข้อมูลเบราว์เซอร์เมื่อไหร่ รายการจะหายไปด้วย — สำรองไปโน้ตไว้บ้างนะ
+  </p>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- storage : localStorage with in-memory fallback ---------- */
+  var KEY = "ledger.green.v1";
+  var memory = null;
+  var storageOK = true;
+  try {
+    localStorage.setItem(KEY + ".probe", "1");
+    localStorage.removeItem(KEY + ".probe");
+  } catch (e) {
+    storageOK = false;
+  }
+
+  function load(){
+    if (!storageOK) return memory || [];
+    try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
+    catch (e) { return []; }
+  }
+  function save(){
+    if (!storageOK) { memory = tx; return; }
+    try { localStorage.setItem(KEY, JSON.stringify(tx)); }
+    catch (e) { storageOK = false; memory = tx; markStorage(); }
+  }
+  function markStorage(){
+    if (!storageOK) {
+      $("storageNote").textContent = "เบราว์เซอร์นี้ไม่ให้บันทึกถาวร — สำรองไปโน้ตก่อนปิดหน้า";
+      $("storageNote").style.color = "var(--out)";
+    }
+  }
+
+  /* ---------- data ---------- */
+  var CATS = {
+    out: ["อาหาร", "เดินทาง", "ช้อปปิ้ง", "ค่าน้ำค่าไฟ", "สุขภาพ", "บันเทิง", "อื่นๆ"],
+    in:  ["เงินเดือน", "โบนัส", "ขายของ", "ของขวัญ", "อื่นๆ"]
+  };
+  var tx = load();
+  var type = "out";
+  var cat = CATS.out[0];
+  var editingId = null;
+  var ym = ymOf(new Date());
+
+  /* ---------- helpers ---------- */
+  function $(id){ return document.getElementById(id); }
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function ymOf(d){ return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
+  function isoOf(d){ return ymOf(d) + "-" + pad(d.getDate()); }
+
+  var money = new Intl.NumberFormat("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function fmt(n){ return money.format(n); }
+
+  function monthName(key){
+    var p = key.split("-");
+    return new Date(+p[0], +p[1] - 1, 1)
+      .toLocaleDateString("th-TH", { month: "long", year: "numeric" });
+  }
+  function dayName(iso){
+    return new Date(iso + "T00:00:00")
+      .toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  var toastTimer;
+  function toast(msg){
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2400);
+  }
+
+  function inMonth(){
+    return tx.filter(function(r){ return r.date.slice(0, 7) === ym; });
+  }
+
+  /* ---------- render ---------- */
+  function renderMonth(){
+    $("monthLabel").textContent = monthName(ym);
+    $("todayLabel").textContent = ym === ymOf(new Date()) ? "เดือนปัจจุบัน" : "";
+  }
+
+  function renderBalance(){
+    var rows = inMonth(), i = 0, o = 0;
+    rows.forEach(function(r){ if (r.type === "in") i += r.amount; else o += r.amount; });
+    var net = i - o;
+
+    var el = $("total");
+    el.className = "total num " + (net > 0 ? "pos" : net < 0 ? "neg" : "");
+    el.innerHTML = (net > 0 ? "+" : net < 0 ? "−" : "") + fmt(Math.abs(net)) +
+                   '<span class="baht">บาท</span>';
+    $("sumIn").textContent = fmt(i);
+    $("sumOut").textContent = fmt(o);
+  }
+
+  function renderBreakdown(){
+    var rows = inMonth().filter(function(r){ return r.type === "out"; });
+    var card = $("bdCard"), box = $("bd");
+
+    if (!rows.length) { card.hidden = true; box.innerHTML = ""; return; }
+    card.hidden = false;
+
+    var by = {}, total = 0;
+    rows.forEach(function(r){
+      by[r.cat] = (by[r.cat] || 0) + r.amount;
+      total += r.amount;
+    });
+
+    var keys = Object.keys(by).sort(function(a, b){ return by[b] - by[a]; });
+    box.innerHTML = keys.map(function(k){
+      var pct = total ? Math.round(by[k] / total * 100) : 0;
+      return '<div class="bd-row">' +
+               '<div class="bd-top"><span>' + esc(k) + '<em>' + pct + '%</em></span>' +
+               '<span class="num">' + fmt(by[k]) + '</span></div>' +
+               '<div class="bar"><i style="width:' + Math.max(pct, 2) + '%"></i></div>' +
+             '</div>';
+    }).join("");
+  }
+
+  function renderList(){
+    var rows = inMonth().slice().sort(function(a, b){
+      if (a.date === b.date) return b.id - a.id;
+      return a.date < b.date ? 1 : -1;
+    });
+    var box = $("list");
+
+    if (!rows.length) {
+      box.innerHTML = '<p class="empty"><span class="big">▤</span>' +
+                      'ยังไม่มีรายการในเดือนนี้<br>บันทึกรายการแรกได้เลย</p>';
+      return;
+    }
+
+    var html = "", currentDay = null;
+    rows.forEach(function(r){
+      if (r.date !== currentDay) {
+        if (currentDay !== null) html += "</div>";
+        currentDay = r.date;
+        html += '<div class="day"><div class="day-head"><b>' + dayName(r.date) + "</b>" +
+                '<span class="num">' + fmt(dayNet(rows, r.date)) + "</span></div>";
+      }
+      html += '<div class="tx ' + r.type + '">' +
+                '<span class="tick"></span>' +
+                '<button type="button" class="body" data-edit="' + r.id + '">' +
+                  '<span class="cat">' + esc(r.cat) + "</span>" +
+                  (r.note ? '<span class="note">' + esc(r.note) + "</span>" : "") +
+                "</button>" +
+                '<span class="amt num">' + (r.type === "in" ? "+" : "−") + fmt(r.amount) + "</span>" +
+                '<button type="button" class="del" data-del="' + r.id + '" aria-label="ลบรายการ">✕</button>' +
+              "</div>";
+    });
+    html += "</div>";
+    box.innerHTML = html;
+  }
+
+  function dayNet(rows, date){
+    var n = 0;
+    rows.forEach(function(r){
+      if (r.date === date) n += (r.type === "in" ? r.amount : -r.amount);
+    });
+    return n;
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderChips(){
+    var box = $("chips");
+    if (CATS[type].indexOf(cat) === -1) cat = CATS[type][0];
+    box.innerHTML = CATS[type].map(function(c){
+      return '<button type="button" class="chip" data-cat="' + esc(c) + '" aria-pressed="' +
+             (c === cat) + '">' + esc(c) + "</button>";
+    }).join("");
+  }
+
+  function renderAll(){
+    renderMonth();
+    renderBalance();
+    renderBreakdown();
+    renderList();
+  }
+
+  /* ---------- form ---------- */
+  function setType(t){
+    type = t;
+    var form = $("form");
+    form.classList.toggle("is-out", t === "out");
+    $("amountRow").className = "amount-row " + t;
+    $("sign").textContent = t === "in" ? "+" : "−";
+    Array.prototype.forEach.call($("form").querySelectorAll(".seg button"), function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.t === t));
+    });
+    renderChips();
+  }
+
+  function resetForm(){
+    editingId = null;
+    $("form").classList.remove("editing");
+    $("submitBtn").textContent = "เพิ่มรายการ";
+    $("amount").value = "";
+    $("note").value = "";
+    $("date").value = isoOf(new Date());
+    setType("out");
+  }
+
+  function startEdit(id){
+    var r = tx.filter(function(x){ return x.id === id; })[0];
+    if (!r) return;
+    editingId = id;
+    setType(r.type);
+    cat = r.cat;
+    renderChips();
+    $("amount").value = String(r.amount);
+    $("note").value = r.note || "";
+    $("date").value = r.date;
+    $("form").classList.add("editing");
+    $("submitBtn").textContent = "บันทึกการแก้ไข";
+    $("form").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  /* ---------- events ---------- */
+  $("form").addEventListener("click", function(e){
+    var seg = e.target.closest(".seg button");
+    if (seg) { setType(seg.dataset.t); return; }
+    var chip = e.target.closest(".chip");
+    if (chip) { cat = chip.dataset.cat; renderChips(); }
+  });
+
+  $("cancelEdit").addEventListener("click", resetForm);
+
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var raw = $("amount").value.replace(/,/g, "").trim();
+    var amt = parseFloat(raw);
+
+    if (!raw || isNaN(amt) || amt <= 0) {
+      toast("ใส่จำนวนเงินให้มากกว่า 0 ก่อนนะ");
+      $("amount").focus();
+      return;
+    }
+
+    var date = $("date").value || isoOf(new Date());
+    var note = $("note").value.trim();
+
+    if (editingId) {
+      tx = tx.map(function(r){
+        return r.id === editingId
+          ? { id: r.id, type: type, amount: amt, cat: cat, note: note, date: date }
+          : r;
+      });
+      toast("แก้ไขแล้ว");
+    } else {
+      tx.push({ id: Date.now(), type: type, amount: amt, cat: cat, note: note, date: date });
+      toast(type === "in" ? "บันทึกรายรับแล้ว" : "บันทึกรายจ่ายแล้ว");
+    }
+
+    ym = date.slice(0, 7);
+    save();
+    resetForm();
+    renderAll();
+  });
+
+  $("list").addEventListener("click", function(e){
+    var del = e.target.closest("[data-del]");
+    if (del) {
+      var id = +del.dataset.del;
+      var r = tx.filter(function(x){ return x.id === id; })[0];
+      if (r && confirm("ลบ " + r.cat + " " + fmt(r.amount) + " บาท?")) {
+        tx = tx.filter(function(x){ return x.id !== id; });
+        if (editingId === id) resetForm();
+        save();
+        renderAll();
+        toast("ลบแล้ว");
+      }
+      return;
+    }
+    var ed = e.target.closest("[data-edit]");
+    if (ed) startEdit(+ed.dataset.edit);
+  });
+
+  $("prevM").addEventListener("click", function(){ shiftMonth(-1); });
+  $("nextM").addEventListener("click", function(){ shiftMonth(1); });
+
+  function shiftMonth(step){
+    var p = ym.split("-");
+    var d = new Date(+p[0], +p[1] - 1 + step, 1);
+    ym = ymOf(d);
+    renderAll();
+  }
+
+  /* ---------- backup : human-readable ledger text ---------- */
+  function toText(){
+    var lines = [];
+    lines.push("📒 สมุดบัญชีเล่มเขียว — สำรองข้อมูล");
+    lines.push("บันทึกเมื่อ " + new Date().toLocaleString("th-TH"));
+    lines.push("รวม " + tx.length + " รายการ");
+    lines.push("");
+    lines.push("— วางข้อความทั้งหมดนี้กลับในแอปเพื่อกู้คืน —");
+    lines.push("");
+
+    tx.slice().sort(function(a, b){ return a.date < b.date ? -1 : 1; }).forEach(function(r){
+      lines.push([
+        r.date,
+        r.type === "in" ? "รับ" : "จ่าย",
+        r.cat,
+        r.amount.toFixed(2),
+        r.note || "-"
+      ].join(" | "));
+    });
+    return lines.join("\n");
+  }
+
+  var LINE = /^(\d{4}-\d{2}-\d{2})\s*\|\s*(รับ|จ่าย)\s*\|\s*([^|]+?)\s*\|\s*([\d,]+(?:\.\d+)?)\s*\|\s*(.*)$/;
+
+  function fromText(text){
+    var out = [];
+    text.split(/\r?\n/).forEach(function(line){
+      var m = LINE.exec(line.trim());
+      if (!m) return;
+      var amt = parseFloat(m[4].replace(/,/g, ""));
+      if (isNaN(amt) || amt <= 0) return;
+      out.push({
+        id: 0,
+        type: m[2] === "รับ" ? "in" : "out",
+        amount: amt,
+        cat: m[3],
+        note: m[5] === "-" ? "" : m[5],
+        date: m[1]
+      });
+    });
+    return out;
+  }
+
+  $("exportBtn").addEventListener("click", function(){
+    if (!tx.length) { toast("ยังไม่มีรายการให้สำรอง"); return; }
+    var text = toText();
+
+    if (navigator.share) {
+      navigator.share({ title: "สมุดบัญชีเล่มเขียว", text: text })
+        .then(function(){ toast("ส่งออกแล้ว — เลือกแอปโน้ตเพื่อบันทึก"); })
+        .catch(function(){ copyText(text); });
+    } else {
+      copyText(text);
+    }
+  });
+
+  function copyText(text){
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      if (ok) {
+        toast("คัดลอกแล้ว — ไปวางในแอปโน้ตได้เลย");
+      } else {
+        $("importPanel").classList.add("open");
+        $("importText").value = text;
+        toast("คัดลอกอัตโนมัติไม่ได้ — คัดลอกจากช่องด้านล่างแทน");
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(function(){ toast("คัดลอกแล้ว — ไปวางในแอปโน้ตได้เลย"); })
+        .catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  $("importToggle").addEventListener("click", function(){
+    $("importPanel").classList.toggle("open");
+  });
+
+  $("importBtn").addEventListener("click", function(){
+    var rows = fromText($("importText").value);
+    if (!rows.length) {
+      toast("ไม่พบรายการในข้อความที่วางมา");
+      return;
+    }
+
+    var seen = {};
+    tx.forEach(function(r){ seen[r.date + "|" + r.type + "|" + r.cat + "|" + r.amount + "|" + r.note] = true; });
+
+    var added = 0, stamp = Date.now();
+    rows.forEach(function(r){
+      var k = r.date + "|" + r.type + "|" + r.cat + "|" + r.amount + "|" + r.note;
+      if (seen[k]) return;
+      seen[k] = true;
+      r.id = stamp + (added++);
+      tx.push(r);
+    });
+
+    save();
+    renderAll();
+    $("importText").value = "";
+    $("importPanel").classList.remove("open");
+    toast(added ? "กู้คืน " + added + " รายการแล้ว" : "รายการทั้งหมดมีอยู่แล้ว");
+  });
+
+  $("clearBtn").addEventListener("click", function(){
+    if (!tx.length) { toast("ไม่มีข้อมูลให้ล้าง"); return; }
+    if (!confirm("ล้างรายการทั้งหมด " + tx.length + " รายการ? กู้คืนไม่ได้ถ้ายังไม่ได้สำรอง")) return;
+    tx = [];
+    save();
+    resetForm();
+    renderAll();
+    toast("ล้างข้อมูลแล้ว");
+  });
+
+  /* ---------- boot ---------- */
+  markStorage();
+  resetForm();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
