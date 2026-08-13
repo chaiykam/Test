@@ -113,6 +113,34 @@
     max-width:180px;
   }
 
+  /* ---------- tool switcher ---------- */
+  .tools{
+    display:flex;
+    gap:5px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:4px;
+    box-shadow:var(--shadow);
+  }
+  .tools a{
+    flex:1;
+    text-align:center;
+    padding:9px 8px;
+    border-radius:8px;
+    font-size:.85rem;
+    font-weight:550;
+    color:var(--muted);
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .tools a:hover{color:var(--ink)}
+  .tools a[aria-current="page"]{
+    background:var(--in-soft);
+    color:var(--in);
+    font-weight:650;
+  }
+
   /* ---------- month strip ---------- */
   .month{
     display:flex;
@@ -612,6 +640,11 @@
     <h1><span class="mark">▮</span> สมุดบัญชีเล่มเขียว</h1>
     <div class="storage-note" id="storageNote">บันทึกไว้ในเครื่องนี้</div>
   </header>
+
+  <nav class="tools" aria-label="เครื่องมือ">
+    <a href="./" aria-current="page">สมุดบัญชี</a>
+    <a href="./tax/">คำนวณภาษี</a>
+  </nav>
 
   <nav class="month" aria-label="เลือกเดือน">
     <button class="icon-btn" id="prevM" aria-label="เดือนก่อนหน้า">‹</button>

@@ -107,6 +107,34 @@
     line-height:1.6;
   }
 
+  /* ---------- tool switcher ---------- */
+  .tools{
+    display:flex;
+    gap:5px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:4px;
+    box-shadow:var(--shadow);
+  }
+  .tools a{
+    flex:1;
+    text-align:center;
+    padding:9px 8px;
+    border-radius:8px;
+    font-size:.85rem;
+    font-weight:550;
+    color:var(--muted);
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .tools a:hover{color:var(--ink)}
+  .tools a[aria-current="page"]{
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-weight:650;
+  }
+
   /* ---------- cards ---------- */
   .card{
     background:var(--surface);
@@ -400,6 +428,11 @@
     <span class="year">ปีภาษี 2569</span>
     <p>คำนวณภาษีเงินได้บุคคลธรรมดาแบบขั้นบันได แล้วดูว่าภาษีแต่ละบาทมาจากขั้นไหน คิดในเครื่องคุณล้วนๆ ไม่มีการส่งข้อมูลออกไปไหน</p>
   </header>
+
+  <nav class="tools" aria-label="เครื่องมือ">
+    <a href="../">สมุดบัญชี</a>
+    <a href="./" aria-current="page">คำนวณภาษี</a>
+  </nav>
 
   <section class="card">
     <h2>รายได้ทั้งปี</h2>
