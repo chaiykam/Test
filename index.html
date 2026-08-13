@@ -97,6 +97,10 @@
 
   *{box-sizing:border-box}
 
+  /* hidden ต้องชนะเสมอ ไม่งั้นกฎ display ของเราจะลบล้างมันโดยไม่รู้ตัว */
+  [hidden]{display:none !important}
+
+
   body{
     margin:0;
     background:var(--bg);
@@ -157,9 +161,9 @@
   .tools a{
     flex:1;
     text-align:center;
-    padding:9px 8px;
+    padding:9px 4px;
     border-radius:8px;
-    font-size:.85rem;
+    font-size:.8rem;
     font-weight:550;
     color:var(--muted);
     text-decoration:none;
@@ -675,6 +679,7 @@
   <nav class="tools" aria-label="เครื่องมือ">
     <a href="./" aria-current="page">สมุดบัญชี</a>
     <a href="./tax/">คำนวณภาษี</a>
+    <a href="./loan/">ผ่อนบ้าน</a>
   </nav>
 
   <nav class="month" aria-label="เลือกเดือน">
